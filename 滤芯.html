@@ -1,473 +1,668 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#4a90e2">
+<meta name="theme-color" content="#2f6bff">
 <title>汽车滤芯管理</title>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #f5f6fa;
-  color: #333;
-  min-height: 100vh;
-  padding-bottom: env(safe-area-inset-bottom);
+:root {
+  --primary: #2f6bff;
+  --primary-deep: #1e4fd6;
+  --bg: #f2f5fa;
+  --card: #ffffff;
+  --text: #1b2436;
+  --sub: #8590a5;
+  --line: #eef1f6;
+  --field-bg: #f4f6fb;
+  --radius: 16px;
+  --shadow: 0 4px 18px rgba(28, 48, 92, 0.07);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 顶部区域 ===== */
 .header {
-  background: linear-gradient(135deg, #4a90e2, #357abd);
+  background: linear-gradient(160deg, #3d7bff 0%, #2456e8 60%, #1c44c4 100%);
   color: #fff;
-  padding: 20rpx;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 14px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+  border-radius: 0 0 22px 22px;
+  box-shadow: 0 6px 24px rgba(36, 86, 232, 0.35);
 }
-.header h1 {
-  font-size: 36rpx;
-  font-weight: 600;
-  text-align: center;
-  padding: 10rpx 0;
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-icon {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  backdrop-filter: blur(4px);
+}
+.brand h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+.brand p { font-size: 11px; opacity: 0.75; margin-top: 1px; }
+.header-count {
+  background: rgba(255,255,255,0.16);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
+}
+.header-count b { font-size: 16px; margin-right: 2px; }
+
 .search-bar {
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.2);
-  border-radius: 40rpx;
-  padding: 10rpx 20rpx;
-  margin: 10rpx 0;
+  gap: 8px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 14px;
+  padding: 4px 6px 4px 14px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
 }
+.search-bar .s-icon { font-size: 16px; opacity: 0.55; }
 .search-bar input {
   flex: 1;
-  background: transparent;
   border: none;
-  color: #fff;
-  font-size: 28rpx;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
   outline: none;
-  padding: 10rpx;
+  padding: 11px 0;
+  min-width: 0;
 }
-.search-bar input::placeholder { color: rgba(255,255,255,0.7); }
-.clear-btn {
-  color: #fff;
-  font-size: 32rpx;
-  padding: 0 15rpx;
+.search-bar input::placeholder { color: #a6afc0; }
+.s-btn {
+  width: 38px; height: 38px;
+  border: none;
+  border-radius: 11px;
+  background: var(--field-bg);
+  font-size: 17px;
   cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
+.s-btn.clear { display: none; }
+.s-btn.clear.show { display: flex; }
+
 .filter-bar {
   display: flex;
-  gap: 10rpx;
-  padding: 10rpx 0;
+  gap: 8px;
+  margin-top: 12px;
   overflow-x: auto;
+  scrollbar-width: none;
 }
+.filter-bar::-webkit-scrollbar { display: none; }
 .filter-tag {
-  background: rgba(255,255,255,0.3);
-  color: #fff;
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
-  font-size: 24rpx;
+  background: rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.9);
+  padding: 7px 15px;
+  border-radius: 20px;
+  font-size: 13px;
   white-space: nowrap;
   cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
 }
 .filter-tag.active {
   background: #fff;
-  color: #4a90e2;
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-.stats {
-  padding: 15rpx 25rpx;
-  color: #888;
-  font-size: 24rpx;
+
+/* ===== 工具条 ===== */
+.toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 14px 16px 4px;
 }
-.action-btns {
-  display: flex;
-  gap: 10rpx;
-}
-.action-btn {
-  background: #fff;
-  color: #4a90e2;
+.result-text { font-size: 13px; color: var(--sub); }
+.result-text b { color: var(--primary); }
+.tool-btns { display: flex; gap: 8px; }
+.tool-btn {
+  background: var(--card);
+  color: #55627a;
   border: none;
-  padding: 8rpx 16rpx;
-  border-radius: 20rpx;
-  font-size: 22rpx;
+  padding: 7px 13px;
+  border-radius: 18px;
+  font-size: 12.5px;
   cursor: pointer;
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 4px;
 }
-.list {
-  padding: 0 20rpx;
-}
+
+/* ===== 列表卡片 ===== */
+.list { padding: 10px 16px calc(110px + var(--safe-bottom)); }
 .card {
-  background: #fff;
-  margin: 15rpx 0;
-  border-radius: 16rpx;
-  padding: 25rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.04);
-  transition: transform 0.2s;
-  position: relative;
-}
-.card:active { transform: scale(0.98); }
-.card-image {
-  width: 100%;
-  max-height: 300rpx;
-  object-fit: cover;
-  border-radius: 12rpx;
-  margin-bottom: 15rpx;
-}
-.card-header {
+  background: var(--card);
+  margin: 0 0 12px;
+  border-radius: var(--radius);
+  padding: 15px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
   display: flex;
+  gap: 12px;
+  cursor: pointer;
+  animation: cardIn 0.25s ease both;
+}
+@keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+.card:active { transform: scale(0.98); }
+.card-body { flex: 1; min-width: 0; }
+.card-top {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-  margin-bottom: 15rpx;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .goods-code {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 17px;
+  font-weight: 700;
+  word-break: break-all;
+  line-height: 1.3;
 }
-.car-model {
-  font-size: 24rpx;
-  color: #fff;
-  background: #4a90e2;
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  max-width: 40%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.type-badge {
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 8px;
   white-space: nowrap;
-}
-.info-row {
-  display: flex;
-  padding: 6rpx 0;
-  font-size: 26rpx;
-}
-.label {
-  color: #999;
-  width: 100rpx;
+  font-weight: 600;
   flex-shrink: 0;
 }
-.value {
-  color: #333;
-  flex: 1;
-  word-break: break-all;
+.tb-oil   { background: #fff4e0; color: #c47b00; }
+.tb-air   { background: #e2f8ec; color: #0d9457; }
+.tb-ac    { background: #e1f2ff; color: #0b78c9; }
+.tb-fuel  { background: #ffe7e5; color: #d63b2f; }
+.tb-none  { background: #eff2f7; color: #8590a5; }
+
+.oe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--field-bg);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  max-width: 100%;
 }
+.oe-chip .k { color: var(--sub); font-size: 11px; flex-shrink: 0; }
+.oe-chip .v {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.meta-item {
+  font-size: 12px;
+  color: #5b6779;
+  background: #f7f9fc;
+  border: 1px solid var(--line);
+  padding: 4px 9px;
+  border-radius: 8px;
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.meta-item b { color: #33405a; font-weight: 500; }
+.card-thumb {
+  width: 68px; height: 68px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ===== 空状态 ===== */
 .empty {
   text-align: center;
-  padding: 100rpx 40rpx;
-  color: #999;
-  font-size: 28rpx;
+  padding: 70px 40px;
+  color: var(--sub);
 }
-.empty-icon { font-size: 80rpx; margin-bottom: 20rpx; }
+.empty-icon {
+  width: 88px; height: 88px;
+  margin: 0 auto 18px;
+  background: var(--card);
+  border-radius: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px;
+  box-shadow: var(--shadow);
+}
+.empty-title { font-size: 16px; color: #55627a; font-weight: 600; margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+/* ===== 悬浮按钮 ===== */
 .fab-container {
   position: fixed;
-  right: 30rpx;
-  bottom: 50rpx;
+  right: 18px;
+  bottom: calc(24px + var(--safe-bottom));
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
-  z-index: 50;
+  align-items: center;
+  gap: 14px;
+  z-index: 90;
 }
 .fab {
-  width: 100rpx;
-  height: 100rpx;
-  background: linear-gradient(135deg, #4a90e2, #357abd);
+  border: none;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6rpx 20rpx rgba(74,144,226,0.4);
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
+  transition: transform 0.15s;
 }
-.fab-icon { color: #fff; font-size: 44rpx; }
-.fab-secondary {
-  width: 80rpx;
-  height: 80rpx;
-  background: #fff;
-  color: #4a90e2;
-  box-shadow: 0 4rpx 15rpx rgba(0,0,0,0.15);
+.fab:active { transform: scale(0.9); }
+.fab-main {
+  width: 58px; height: 58px;
+  background: linear-gradient(145deg, #3d7bff, #2251e0);
+  box-shadow: 0 8px 22px rgba(36, 86, 232, 0.45);
 }
-.fab-secondary .fab-icon { color: #4a90e2; font-size: 36rpx; }
-/* 弹窗 */
-.modal-mask {
+.fab-main span { color: #fff; font-size: 28px; line-height: 1; }
+.fab-sub {
+  width: 46px; height: 46px;
+  background: var(--card);
+  box-shadow: 0 4px 14px rgba(28, 48, 92, 0.18);
+  font-size: 20px;
+}
+
+/* ===== 底部弹层 ===== */
+.mask {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
+  inset: 0;
+  background: rgba(13, 22, 42, 0.5);
+  z-index: 190;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(2px);
 }
-.modal-mask.show { display: flex; }
-.modal {
-  background: #fff;
-  width: 90%;
-  max-width: 500px;
+.mask.show { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: var(--card);
+  border-radius: 22px 22px 0 0;
+  transform: translateY(105%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0.32, 1);
   max-height: 90vh;
-  border-radius: 20rpx;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  z-index: 200;
+  padding-bottom: var(--safe-bottom);
 }
-.modal-header {
-  padding: 25rpx;
-  background: #4a90e2;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  text-align: center;
+.sheet.show { transform: translateY(0); }
+.sheet-grip {
+  width: 40px; height: 4px;
+  background: #dde3ee;
+  border-radius: 4px;
+  margin: 10px auto 2px;
+  flex-shrink: 0;
 }
-.modal-body {
-  padding: 20rpx;
+.sheet-header {
+  padding: 8px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.sheet-header h2 { font-size: 17px; font-weight: 700; }
+.sheet-close {
+  width: 30px; height: 30px;
+  border: none;
+  background: var(--field-bg);
+  border-radius: 50%;
+  font-size: 14px;
+  color: var(--sub);
+  cursor: pointer;
+}
+.sheet-body {
+  padding: 2px 18px 18px;
   overflow-y: auto;
   flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
-.form-item {
-  padding: 15rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+.sheet-footer {
+  padding: 12px 18px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+  background: var(--card);
 }
+
+/* ===== 表单 ===== */
+.form-section { margin-bottom: 16px; }
 .form-label {
   display: block;
-  font-size: 26rpx;
-  color: #888;
-  margin-bottom: 8rpx;
+  font-size: 13px;
+  color: var(--sub);
+  margin-bottom: 7px;
+  font-weight: 500;
 }
-.form-input, .form-textarea, .form-select {
+.form-label .req { color: #e5484d; }
+.form-input, .form-textarea {
   width: 100%;
   border: none;
-  font-size: 30rpx;
-  color: #333;
+  font-size: 15px;
+  color: var(--text);
   outline: none;
-  padding: 10rpx 0;
-  background: transparent;
+  padding: 12px 14px;
+  background: var(--field-bg);
+  border-radius: 12px;
   font-family: inherit;
+  transition: box-shadow 0.2s;
 }
-.form-textarea {
-  min-height: 120rpx;
-  resize: none;
+.form-input:focus, .form-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.35);
+  background: #fff;
 }
-.form-select {
-  background: #f5f6fa;
-  padding: 15rpx;
-  border-radius: 8rpx;
+.form-textarea { min-height: 84px; resize: none; }
+.input-row { display: flex; gap: 8px; }
+.input-row .form-input { flex: 1; min-width: 0; }
+.scan-mini {
+  border: none;
+  background: linear-gradient(145deg, #22c55e, #15803d);
+  color: #fff;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-.image-upload {
-  display: flex;
-  gap: 15rpx;
-  margin-top: 10rpx;
+.type-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.type-chip {
+  padding: 9px 15px;
+  border-radius: 12px;
+  background: var(--field-bg);
+  font-size: 14px;
+  color: #55627a;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1.5px solid transparent;
 }
+.type-chip.active {
+  background: #eaf0ff;
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+.image-upload { display: flex; gap: 10px; }
 .image-btn {
   flex: 1;
-  padding: 20rpx;
-  background: #f5f6fa;
-  border: 2rpx dashed #ccc;
-  border-radius: 12rpx;
+  padding: 14px;
+  background: var(--field-bg);
+  border: 1.5px dashed #ccd5e3;
+  border-radius: 12px;
   text-align: center;
   cursor: pointer;
-  font-size: 26rpx;
-  color: #666;
+  font-size: 13.5px;
+  color: #55627a;
 }
-.image-btn:active { background: #e8e8e8; }
-.image-preview {
-  width: 100%;
-  max-height: 400rpx;
-  object-fit: cover;
-  border-radius: 12rpx;
-  margin-top: 15rpx;
-}
-.modal-footer {
-  padding: 20rpx;
-  display: flex;
-  gap: 15rpx;
-  border-top: 1rpx solid #f0f0f0;
-}
-.btn {
-  flex: 1;
-  height: 80rpx;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  border: none;
-  cursor: pointer;
-}
-.btn-save {
-  background: linear-gradient(135deg, #4a90e2, #357abd);
-  color: #fff;
-}
-.btn-cancel {
-  background: #f0f2f5;
-  color: #666;
-}
-.btn-copy {
-  background: #fff;
-  color: #4a90e2;
-  border: 2rpx solid #4a90e2;
-}
-.btn-danger {
-  background: #e43d33;
-  color: #fff;
-}
-.btn-scan {
-  background: #18bc37;
-  color: #fff;
-}
-/* 扫码 */
-#reader {
-  width: 100%;
-  margin: 20rpx 0;
-}
-/* Toast */
-.toast {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.8);
-  color: #fff;
-  padding: 20rpx 40rpx;
-  border-radius: 10rpx;
-  font-size: 28rpx;
-  z-index: 999;
+.image-btn:active { background: #e8ecf4; }
+.image-preview-wrap {
+  margin-top: 10px;
+  position: relative;
   display: none;
 }
-.toast.show { display: block; animation: fadeIn 0.3s; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-/* 隐藏文件输入 */
-.hidden { display: none; }
+.image-preview-wrap.show { display: block; }
+.image-preview {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+.image-remove {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== 按钮 ===== */
+.btn {
+  flex: 1;
+  height: 46px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-save { background: linear-gradient(145deg, #3d7bff, #2251e0); color: #fff; box-shadow: 0 4px 14px rgba(36,86,232,0.35); }
+.btn-cancel { background: var(--field-bg); color: #55627a; }
+.btn-copy { background: #eaf0ff; color: var(--primary); }
+.btn-danger { background: #feeceb; color: #d63b2f; }
+
+/* ===== 详情 ===== */
+.detail-image {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  display: block;
+}
+.detail-fields { display: flex; flex-direction: column; gap: 4px; }
+.d-field {
+  display: flex;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14.5px;
+  align-items: baseline;
+}
+.d-field:last-child { border-bottom: none; }
+.d-field .dk { color: var(--sub); width: 76px; flex-shrink: 0; font-size: 13px; }
+.d-field .dv { flex: 1; word-break: break-all; font-weight: 500; }
+.d-field .dv.mono { font-family: 'SF Mono', Menlo, Consolas, monospace; }
+.tap-hint { font-size: 12px; color: #aab3c5; text-align: center; margin-top: 10px; }
+
+/* ===== 扫码 ===== */
+#reader { width: 100%; border-radius: 14px; overflow: hidden; }
+.scan-tip { text-align: center; color: var(--sub); font-size: 13px; margin-top: 14px; line-height: 1.6; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(120px + var(--safe-bottom));
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(23, 32, 54, 0.92);
+  color: #fff;
+  padding: 11px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s;
+  max-width: 80vw;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
 
+<!-- 顶部 -->
 <div class="header">
-  <h1>🚗 汽车滤芯管理</h1>
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-icon">🚗</div>
+      <div>
+        <h1>汽车滤芯管理</h1>
+        <p>Filter Master · 离线存储</p>
+      </div>
+    </div>
+    <div class="header-count"><b id="totalCount">0</b>条</div>
+  </div>
   <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="🔍 搜索编码/OE码/车型/规格..." oninput="doSearch()">
-    <span class="clear-btn" onclick="clearSearch()">✕</span>
+    <span class="s-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜索编码 / OE码 / 车型 / 规格…" oninput="doSearch()">
+    <button class="s-btn clear" id="clearBtn" onclick="clearSearch()">✕</button>
+    <button class="s-btn" onclick="startScan('search')">📷</button>
   </div>
-  <div class="filter-bar">
-    <div class="filter-tag active" onclick="filterByType('all')">全部</div>
-    <div class="filter-tag" onclick="filterByType('机油滤芯')">机油滤芯</div>
-    <div class="filter-tag" onclick="filterByType('空气滤芯')">空气滤芯</div>
-    <div class="filter-tag" onclick="filterByType('空调滤芯')">空调滤芯</div>
-    <div class="filter-tag" onclick="filterByType('燃油滤芯')">燃油滤芯</div>
-  </div>
-</div>
-
-<div class="stats">
-  <span id="statsText">共 0 条记录</span>
-  <div class="action-btns">
-    <button class="action-btn" onclick="importData()">📥 导入</button>
-    <button class="action-btn" onclick="exportData()">📤 导出</button>
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-tag active" data-type="all" onclick="filterByType('all', this)">全部</div>
+    <div class="filter-tag" data-type="机油滤芯" onclick="filterByType('机油滤芯', this)">🛢️ 机油滤芯</div>
+    <div class="filter-tag" data-type="空气滤芯" onclick="filterByType('空气滤芯', this)">🌬️ 空气滤芯</div>
+    <div class="filter-tag" data-type="空调滤芯" onclick="filterByType('空调滤芯', this)">❄️ 空调滤芯</div>
+    <div class="filter-tag" data-type="燃油滤芯" onclick="filterByType('燃油滤芯', this)">⛽ 燃油滤芯</div>
   </div>
 </div>
 
+<!-- 工具条 -->
+<div class="toolbar">
+  <span class="result-text" id="statsText">共 <b>0</b> 条记录</span>
+  <div class="tool-btns">
+    <button class="tool-btn" onclick="importData()">📥 导入</button>
+    <button class="tool-btn" onclick="exportData()">📤 导出</button>
+  </div>
+</div>
+
+<!-- 列表 -->
 <div class="list" id="list"></div>
 
+<!-- 悬浮按钮 -->
 <div class="fab-container">
-  <div class="fab fab-secondary" onclick="startScan()">
-    <span class="fab-icon">📷</span>
+  <button class="fab fab-sub" onclick="startScan('search')">📷</button>
+  <button class="fab fab-main" onclick="openModal()"><span>＋</span></button>
+</div>
+
+<!-- 遮罩 -->
+<div class="mask" id="mask" onclick="closeAllSheets()"></div>
+
+<!-- 编辑弹层 -->
+<div class="sheet" id="modal">
+  <div class="sheet-grip"></div>
+  <div class="sheet-header">
+    <h2 id="modalTitle">新增滤芯</h2>
+    <button class="sheet-close" onclick="closeSheet('modal')">✕</button>
   </div>
-  <div class="fab" onclick="openModal()">
-    <span class="fab-icon">➕</span>
+  <div class="sheet-body">
+    <div class="form-section">
+      <label class="form-label">滤芯类型</label>
+      <div class="type-chips" id="typeChips">
+        <div class="type-chip" data-v="机油滤芯" onclick="pickType(this)">🛢️ 机油</div>
+        <div class="type-chip" data-v="空气滤芯" onclick="pickType(this)">🌬️ 空气</div>
+        <div class="type-chip" data-v="空调滤芯" onclick="pickType(this)">❄️ 空调</div>
+        <div class="type-chip" data-v="燃油滤芯" onclick="pickType(this)">⛽ 燃油</div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">货品编码 <span class="req">*</span></label>
+      <input class="form-input" id="f_goods_code" placeholder="请输入货品编码">
+    </div>
+    <div class="form-section">
+      <label class="form-label">OE码</label>
+      <div class="input-row">
+        <input class="form-input" id="f_oe_code" placeholder="扫码或手动输入">
+        <button class="scan-mini" onclick="startScan('edit')">扫码</button>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">车型</label>
+      <input class="form-input" id="f_car_model" placeholder="如：大众 迈腾 330TSI">
+    </div>
+    <div class="form-section">
+      <label class="form-label">规格</label>
+      <input class="form-input" id="f_specification" placeholder="如：φ68×142">
+    </div>
+    <div class="form-section">
+      <label class="form-label">胶圈</label>
+      <input class="form-input" id="f_rubber_ring" placeholder="请输入胶圈信息">
+    </div>
+    <div class="form-section">
+      <label class="form-label">盒子</label>
+      <input class="form-input" id="f_box_info" placeholder="请输入盒子信息">
+    </div>
+    <div class="form-section">
+      <label class="form-label">备注</label>
+      <textarea class="form-textarea" id="f_notes" placeholder="请输入备注"></textarea>
+    </div>
+    <div class="form-section">
+      <label class="form-label">滤芯照片</label>
+      <div class="image-upload">
+        <div class="image-btn" onclick="document.getElementById('imageInput').click()">📷 拍照</div>
+        <div class="image-btn" onclick="document.getElementById('imageInputAlbum').click()">🖼️ 相册</div>
+      </div>
+      <input type="file" id="imageInput" accept="image/*" capture="camera" class="hidden" onchange="handleImage(event)">
+      <input type="file" id="imageInputAlbum" accept="image/*" class="hidden" onchange="handleImage(event)">
+      <div class="image-preview-wrap" id="imgWrap">
+        <img id="imagePreview" class="image-preview">
+        <button class="image-remove" onclick="removeImage()">✕</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn btn-cancel" onclick="closeSheet('modal')">取消</button>
+    <button class="btn btn-save" onclick="saveFilter()">保存</button>
   </div>
 </div>
 
-<!-- 编辑弹窗 -->
-<div class="modal-mask" id="modal">
-  <div class="modal">
-    <div class="modal-header" id="modalTitle">新增滤芯</div>
-    <div class="modal-body">
-      <div class="form-item">
-        <label class="form-label">滤芯类型</label>
-        <select class="form-select" id="f_type">
-          <option value="">请选择类型</option>
-          <option value="机油滤芯">机油滤芯</option>
-          <option value="空气滤芯">空气滤芯</option>
-          <option value="空调滤芯">空调滤芯</option>
-          <option value="燃油滤芯">燃油滤芯</option>
-        </select>
-      </div>
-      <div class="form-item">
-        <label class="form-label">货品编码</label>
-        <input class="form-input" id="f_goods_code" placeholder="请输入货品编码">
-      </div>
-      <div class="form-item">
-        <label class="form-label">OE码</label>
-        <div style="display: flex; gap: 10rpx;">
-          <input class="form-input" id="f_oe_code" placeholder="请输入OE码" style="flex: 1;">
-          <button class="btn btn-scan" style="width: auto; padding: 0 20rpx;" onclick="scanOE()">扫码</button>
-        </div>
-      </div>
-      <div class="form-item">
-        <label class="form-label">车型</label>
-        <input class="form-input" id="f_car_model" placeholder="请输入车型">
-      </div>
-      <div class="form-item">
-        <label class="form-label">规格</label>
-        <input class="form-input" id="f_specification" placeholder="请输入规格">
-      </div>
-      <div class="form-item">
-        <label class="form-label">胶圈</label>
-        <input class="form-input" id="f_rubber_ring" placeholder="请输入胶圈">
-      </div>
-      <div class="form-item">
-        <label class="form-label">盒子</label>
-        <input class="form-input" id="f_box_info" placeholder="请输入盒子">
-      </div>
-      <div class="form-item">
-        <label class="form-label">备注</label>
-        <textarea class="form-textarea" id="f_notes" placeholder="请输入备注"></textarea>
-      </div>
-      <div class="form-item">
-        <label class="form-label">滤芯照片</label>
-        <div class="image-upload">
-          <div class="image-btn" onclick="document.getElementById('imageInput').click()">
-            📷 拍照
-          </div>
-          <div class="image-btn" onclick="document.getElementById('imageInputAlbum').click()">
-            🖼️ 相册
-          </div>
-        </div>
-        <input type="file" id="imageInput" accept="image/*" capture="camera" class="hidden" onchange="handleImage(event)">
-        <input type="file" id="imageInputAlbum" accept="image/*" class="hidden" onchange="handleImage(event)">
-        <img id="imagePreview" class="image-preview" style="display: none;">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
-      <button class="btn btn-save" onclick="saveFilter()">💾 保存</button>
-    </div>
+<!-- 详情弹层 -->
+<div class="sheet" id="detailModal">
+  <div class="sheet-grip"></div>
+  <div class="sheet-header">
+    <h2>滤芯详情</h2>
+    <button class="sheet-close" onclick="closeSheet('detailModal')">✕</button>
+  </div>
+  <div class="sheet-body" id="detailBody"></div>
+  <div class="sheet-footer">
+    <button class="btn btn-danger" onclick="deleteCurrent()">删除</button>
+    <button class="btn btn-copy" id="copyBtn" onclick="copyOE()">📋 复制OE</button>
+    <button class="btn btn-save" onclick="editCurrent()">✏️ 编辑</button>
   </div>
 </div>
 
-<!-- 详情弹窗 -->
-<div class="modal-mask" id="detailModal">
-  <div class="modal">
-    <div class="modal-header">滤芯详情</div>
-    <div class="modal-body" id="detailBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteCurrent()">🗑️ 删除</button>
-      <button class="btn btn-copy" id="copyBtn" onclick="copyOE()">📋 复制OE码</button>
-      <button class="btn btn-save" onclick="editCurrent()">✏️ 编辑</button>
-    </div>
+<!-- 扫码弹层 -->
+<div class="sheet" id="scanModal">
+  <div class="sheet-grip"></div>
+  <div class="sheet-header">
+    <h2>扫描二维码 / 条码</h2>
+    <button class="sheet-close" onclick="stopScan()">✕</button>
   </div>
-</div>
-
-<!-- 扫码弹窗 -->
-<div class="modal-mask" id="scanModal">
-  <div class="modal">
-    <div class="modal-header">扫描二维码/条码</div>
-    <div class="modal-body">
-      <div id="reader"></div>
-      <div style="text-align: center; color: #999; font-size: 24rpx; margin-top: 20rpx;">
-        将条码/二维码放入框内，自动识别
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-cancel" onclick="stopScan()">关闭</button>
-    </div>
+  <div class="sheet-body">
+    <div id="reader"></div>
+    <div class="scan-tip">对准条码自动识别<br>识别后自动填入对应位置</div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn btn-cancel" onclick="stopScan()">关闭</button>
   </div>
 </div>
 
@@ -481,8 +676,23 @@ let editingId = null;
 let currentImage = null;
 let currentFilterType = 'all';
 let html5QrCode = null;
+let scanTarget = 'edit'; // 'edit' 填入OE码输入框 | 'search' 填入搜索框
+let searchTimer = null;
 
-// 加载数据
+const TYPE_CLASS = {
+  '机油滤芯': 'tb-oil',
+  '空气滤芯': 'tb-air',
+  '空调滤芯': 'tb-ac',
+  '燃油滤芯': 'tb-fuel'
+};
+const TYPE_ICON = {
+  '机油滤芯': '🛢️',
+  '空气滤芯': '🌬️',
+  '空调滤芯': '❄️',
+  '燃油滤芯': '⛽'
+};
+
+// ---------- 数据 ----------
 function loadData() {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -492,127 +702,185 @@ function loadData() {
   }
   renderList();
 }
-
-// 保存数据
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
 }
 
-// 渲染列表
-function renderList() {
+// ---------- 渲染 ----------
+function getFilteredList() {
   const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
   let list = filters;
-  
-  // 类型筛选
   if (currentFilterType !== 'all') {
     list = list.filter(item => item.type === currentFilterType);
   }
-  
-  // 关键字搜索
   if (keyword) {
-    list = list.filter(item => {
-      return (item.goods_code || '').toLowerCase().includes(keyword)
-          || (item.oe_code || '').toLowerCase().includes(keyword)
-          || (item.car_model || '').toLowerCase().includes(keyword)
-          || (item.specification || '').toLowerCase().includes(keyword)
-          || (item.rubber_ring || '').toLowerCase().includes(keyword)
-          || (item.box_info || '').toLowerCase().includes(keyword)
-          || (item.notes || '').toLowerCase().includes(keyword);
-    });
+    list = list.filter(item =>
+      ['goods_code','oe_code','car_model','specification','rubber_ring','box_info','notes','type']
+        .some(k => (item[k] || '').toLowerCase().includes(keyword))
+    );
   }
-  
+  return list;
+}
+
+function renderList() {
+  const list = getFilteredList();
+  const keyword = document.getElementById('searchInput').value.trim();
+  document.getElementById('clearBtn').classList.toggle('show', !!keyword);
+  document.getElementById('statsText').innerHTML = `共 <b>${list.length}</b> 条记录`;
+  document.getElementById('totalCount').textContent = filters.length;
+
   const listEl = document.getElementById('list');
-  document.getElementById('statsText').textContent = `共 ${list.length} 条记录`;
-  
   if (list.length === 0) {
+    const searching = keyword || currentFilterType !== 'all';
     listEl.innerHTML = `
       <div class="empty">
-        <div class="empty-icon">📦</div>
-        <div>${keyword || currentFilterType !== 'all' ? '没有找到匹配的记录' : '暂无数据，点击右下角 ➕ 添加'}</div>
-      </div>
-    `;
+        <div class="empty-icon">${searching ? '🔍' : '📦'}</div>
+        <div class="empty-title">${searching ? '没有找到匹配的记录' : '暂无滤芯数据'}</div>
+        <div class="empty-sub">${searching ? '换个关键词试试' : '点击右下角 ＋ 添加第一条记录'}</div>
+      </div>`;
     return;
   }
-  
-  listEl.innerHTML = list.map(item => `
-    <div class="card" onclick="viewDetail(${item.id})">
-      ${item.image ? `<img src="${item.image}" class="card-image">` : ''}
-      <div class="card-header">
-        <div class="goods-code">${escapeHtml(item.goods_code || '未编码')}</div>
-        ${item.car_model ? `<div class="car-model">${escapeHtml(item.car_model)}</div>` : ''}
+
+  listEl.innerHTML = list.map((item, i) => `
+    <div class="card" style="animation-delay:${Math.min(i * 0.03, 0.3)}s" onclick="viewDetail(${item.id})">
+      <div class="card-body">
+        <div class="card-top">
+          <div class="goods-code">${escapeHtml(item.goods_code || '未编码')}</div>
+          <div class="type-badge ${TYPE_CLASS[item.type] || 'tb-none'}">${item.type ? TYPE_ICON[item.type] + ' ' + escapeHtml(item.type.replace('滤芯','')) : '未分类'}</div>
+        </div>
+        ${item.oe_code ? `<div class="oe-chip"><span class="k">OE</span><span class="v">${escapeHtml(item.oe_code)}</span></div>` : ''}
+        <div class="card-meta">
+          ${item.car_model ? metaItem('车型', item.car_model) : ''}
+          ${item.specification ? metaItem('规格', item.specification) : ''}
+          ${item.rubber_ring ? metaItem('胶圈', item.rubber_ring) : ''}
+          ${item.box_info ? metaItem('盒子', item.box_info) : ''}
+        </div>
       </div>
-      ${item.type ? `<div class="info-row"><span class="label">类型：</span><span class="value">${escapeHtml(item.type)}</span></div>` : ''}
-      ${item.oe_code ? `<div class="info-row"><span class="label">OE码：</span><span class="value">${escapeHtml(item.oe_code)}</span></div>` : ''}
-      ${item.specification ? `<div class="info-row"><span class="label">规格：</span><span class="value">${escapeHtml(item.specification)}</span></div>` : ''}
-      ${item.rubber_ring ? `<div class="info-row"><span class="label">胶圈：</span><span class="value">${escapeHtml(item.rubber_ring)}</span></div>` : ''}
+      ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy">` : ''}
     </div>
   `).join('');
 }
+function metaItem(k, v) {
+  return `<span class="meta-item">${k} <b>${escapeHtml(v)}</b></span>`;
+}
 
-// HTML 转义
 function escapeHtml(str) {
   const div = document.createElement('div');
-  div.textContent = str;
+  div.textContent = str == null ? '' : String(str);
   return div.innerHTML;
 }
 
-// 搜索
+// ---------- 搜索 ----------
 function doSearch() {
-  renderList();
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderList, 120);
 }
-
 function clearSearch() {
   document.getElementById('searchInput').value = '';
   renderList();
 }
-
-// 类型筛选
-function filterByType(type) {
+function filterByType(type, el) {
   currentFilterType = type;
-  document.querySelectorAll('.filter-tag').forEach(tag => {
-    tag.classList.remove('active');
-  });
-  event.target.classList.add('active');
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
   renderList();
 }
 
-// 打开新增弹窗
+// ---------- 弹层控制 ----------
+function showSheet(id) {
+  document.getElementById('mask').classList.add('show');
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet(id) {
+  document.getElementById(id).classList.remove('show');
+  if (!document.querySelector('.sheet.show')) {
+    document.getElementById('mask').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+}
+function closeAllSheets() {
+  document.querySelectorAll('.sheet.show').forEach(s => s.classList.remove('show'));
+  document.getElementById('mask').classList.remove('show');
+  document.body.style.overflow = '';
+  if (html5QrCode) stopScanOnly();
+}
+
+// ---------- 新增 / 编辑 ----------
+function pickType(el) {
+  document.querySelectorAll('#typeChips .type-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+function getSelectedType() {
+  const active = document.querySelector('#typeChips .type-chip.active');
+  return active ? active.dataset.v : '';
+}
+function setSelectedType(type) {
+  document.querySelectorAll('#typeChips .type-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.v === type);
+  });
+}
+
 function openModal() {
   editingId = null;
   currentImage = null;
   document.getElementById('modalTitle').textContent = '新增滤芯';
-  ['type', 'goods_code', 'oe_code', 'car_model', 'specification', 'rubber_ring', 'box_info', 'notes'].forEach(key => {
+  ['goods_code','oe_code','car_model','specification','rubber_ring','box_info','notes'].forEach(key => {
     document.getElementById('f_' + key).value = '';
   });
-  document.getElementById('imagePreview').style.display = 'none';
-  document.getElementById('modal').classList.add('show');
+  setSelectedType('');
+  updateImagePreview(null);
+  showSheet('modal');
+  setTimeout(() => document.getElementById('f_goods_code').focus(), 350);
 }
 
-// 关闭弹窗
-function closeModal() {
-  document.getElementById('modal').classList.remove('show');
-  document.getElementById('detailModal').classList.remove('show');
-}
-
-// 处理图片
 function handleImage(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+  compressImage(file, 900, 0.72, (dataUrl) => {
+    currentImage = dataUrl;
+    updateImagePreview(currentImage);
+  });
+  event.target.value = '';
+}
+function compressImage(file, maxSize, quality, callback) {
   const reader = new FileReader();
   reader.onload = function(e) {
-    currentImage = e.target.result;
-    const preview = document.getElementById('imagePreview');
-    preview.src = currentImage;
-    preview.style.display = 'block';
+    const img = new Image();
+    img.onload = function() {
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        const ratio = Math.min(maxSize / w, maxSize / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => callback(e.target.result); // 解析失败退回原图
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
+function removeImage() {
+  currentImage = null;
+  updateImagePreview(null);
+}
+function updateImagePreview(src) {
+  const wrap = document.getElementById('imgWrap');
+  if (src) {
+    document.getElementById('imagePreview').src = src;
+    wrap.classList.add('show');
+  } else {
+    wrap.classList.remove('show');
+  }
+}
 
-// 保存
 function saveFilter() {
   const data = {
-    type: document.getElementById('f_type').value,
+    type: getSelectedType(),
     goods_code: document.getElementById('f_goods_code').value.trim(),
     oe_code: document.getElementById('f_oe_code').value.trim(),
     car_model: document.getElementById('f_car_model').value.trim(),
@@ -622,12 +890,10 @@ function saveFilter() {
     notes: document.getElementById('f_notes').value.trim(),
     image: currentImage
   };
-  
   if (!data.goods_code && !data.oe_code && !data.car_model) {
-    showToast('请至少填写一项');
+    showToast('请至少填写 编码 / OE码 / 车型');
     return;
   }
-  
   if (editingId) {
     const idx = filters.findIndex(x => x.id === editingId);
     if (idx >= 0) {
@@ -638,176 +904,160 @@ function saveFilter() {
     data.created_at = new Date().toISOString();
     filters.unshift(data);
   }
-  
   saveData();
-  closeModal();
+  closeSheet('modal');
   renderList();
-  showToast('保存成功 ✓');
+  showToast('已保存 ✓');
 }
 
-// 查看详情
+// ---------- 详情 ----------
 function viewDetail(id) {
   const item = filters.find(x => x.id === id);
   if (!item) return;
   currentId = id;
-  
+
   const fields = [
     ['类型', item.type],
-    ['货品编码', item.goods_code],
-    ['OE码', item.oe_code],
+    ['货品编码', item.goods_code, true],
+    ['OE码', item.oe_code, true],
     ['车型', item.car_model],
     ['规格', item.specification],
     ['胶圈', item.rubber_ring],
     ['盒子', item.box_info],
     ['备注', item.notes]
   ];
-  
   let html = '';
   if (item.image) {
-    html += `<img src="${item.image}" style="width: 100%; border-radius: 12rpx; margin-bottom: 20rpx;">`;
+    html += `<img src="${item.image}" class="detail-image" onclick="previewBigImage(this.src)">`;
   }
-  html += fields
+  html += '<div class="detail-fields">' + fields
     .filter(([, v]) => v)
-    .map(([k, v]) => `<div class="info-row"><span class="label">${k}：</span><span class="value">${escapeHtml(v)}</span></div>`)
-    .join('');
-  
+    .map(([k, v, mono]) => `<div class="d-field"><span class="dk">${k}</span><span class="dv${mono ? ' mono' : ''}">${escapeHtml(v)}</span></div>`)
+    .join('') + '</div>';
+  html += `<div class="tap-hint">提示：点击图片可放大查看</div>`;
+
   document.getElementById('detailBody').innerHTML = html;
   document.getElementById('copyBtn').style.display = item.oe_code ? '' : 'none';
-  document.getElementById('detailModal').classList.add('show');
+  showSheet('detailModal');
 }
 
-// 编辑当前
+function previewBigImage(src) {
+  const w = window.open('', '_blank');
+  if (w) {
+    w.document.write(`<body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;height:100vh"><img src="${src}" style="max-width:100%;max-height:100%"></body>`);
+  }
+}
+
 function editCurrent() {
   const item = filters.find(x => x.id === currentId);
   if (!item) return;
   editingId = currentId;
-  currentImage = item.image;
+  currentImage = item.image || null;
   document.getElementById('modalTitle').textContent = '编辑滤芯';
-  ['type', 'goods_code', 'oe_code', 'car_model', 'specification', 'rubber_ring', 'box_info', 'notes'].forEach(key => {
+  ['goods_code','oe_code','car_model','specification','rubber_ring','box_info','notes'].forEach(key => {
     document.getElementById('f_' + key).value = item[key] || '';
   });
-  
-  const preview = document.getElementById('imagePreview');
-  if (item.image) {
-    preview.src = item.image;
-    preview.style.display = 'block';
-  } else {
-    preview.style.display = 'none';
-  }
-  
-  document.getElementById('detailModal').classList.remove('show');
-  document.getElementById('modal').classList.add('show');
+  setSelectedType(item.type || '');
+  updateImagePreview(currentImage);
+  closeSheet('detailModal');
+  setTimeout(() => showSheet('modal'), 120);
 }
 
-// 删除当前
 function deleteCurrent() {
   if (!confirm('确定要删除这条记录吗？')) return;
   filters = filters.filter(x => x.id !== currentId);
   saveData();
-  closeModal();
+  closeSheet('detailModal');
   renderList();
   showToast('已删除');
 }
 
-// 复制 OE 码
 function copyOE() {
   const item = filters.find(x => x.id === currentId);
   if (!item || !item.oe_code) return;
-  
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(item.oe_code).then(() => {
-      showToast('已复制 OE码');
-    });
+  copyText(item.oe_code, '已复制 OE码');
+}
+function copyText(text, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg)).catch(() => fallbackCopy(text, msg));
   } else {
-    const input = document.createElement('input');
-    input.value = item.oe_code;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand('copy');
-    document.body.removeChild(input);
-    showToast('已复制 OE码');
+    fallbackCopy(text, msg);
   }
 }
+function fallbackCopy(text, msg) {
+  const input = document.createElement('textarea');
+  input.value = text;
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+  showToast(msg);
+}
 
-// 导出数据
+// ---------- 导入导出 ----------
+const CSV_HEADERS = ['类型', '货品编码', 'OE码', '车型', '规格', '胶圈', '盒子', '备注', '图片', '创建时间'];
+
 function exportData() {
   if (filters.length === 0) {
     showToast('暂无数据可导出');
     return;
   }
-  
-  const headers = ['类型', '货品编码', 'OE码', '车型', '规格', '胶圈', '盒子', '备注', '图片', '创建时间'];
   const rows = filters.map(f => [
     f.type || '', f.goods_code || '', f.oe_code || '', f.car_model || '',
     f.specification || '', f.rubber_ring || '', f.box_info || '',
     f.notes || '', f.image || '', f.created_at || ''
   ]);
-  
-  let csv = '\uFEFF' + headers.join(',') + '\n';
+  let csv = '\uFEFF' + CSV_HEADERS.join(',') + '\n';
   rows.forEach(row => {
     csv += row.map(cell => `"${(cell + '').replace(/"/g, '""')}"`).join(',') + '\n';
   });
-  
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `滤芯数据_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `滤芯数据_${new Date().toISOString().slice(0, 10)}.csv`);
   showToast('导出成功');
 }
 
-// 导入数据
 function importData() {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.csv';
+  input.accept = '.csv,.txt';
   input.onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
-    
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function(ev) {
       try {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length < 2) {
-          showToast('文件格式错误');
-          return;
-        }
-        
-        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) { showToast('文件格式错误'); return; }
         const newFilters = [];
-        
+        const existKeys = new Set(filters.map(f => (f.goods_code || '') + '|' + (f.oe_code || '')).filter(k => k !== '|'));
+        let dupCount = 0;
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
-          const cleanValues = values.map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"'));
-          
+          const cv = values.map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"'));
           const item = {
             id: Date.now() + i,
-            type: cleanValues[0] || '',
-            goods_code: cleanValues[1] || '',
-            oe_code: cleanValues[2] || '',
-            car_model: cleanValues[3] || '',
-            specification: cleanValues[4] || '',
-            rubber_ring: cleanValues[5] || '',
-            box_info: cleanValues[6] || '',
-            notes: cleanValues[7] || '',
-            image: cleanValues[8] || '',
-            created_at: cleanValues[9] || new Date().toISOString()
+            type: cv[0] || '', goods_code: cv[1] || '', oe_code: cv[2] || '',
+            car_model: cv[3] || '', specification: cv[4] || '', rubber_ring: cv[5] || '',
+            box_info: cv[6] || '', notes: cv[7] || '', image: cv[8] || '',
+            created_at: cv[9] || new Date().toISOString()
           };
-          
-          if (item.goods_code || item.oe_code || item.car_model) {
-            newFilters.push(item);
-          }
+          if (!(item.goods_code || item.oe_code || item.car_model)) continue;
+          const key = (item.goods_code || '') + '|' + (item.oe_code || '');
+          if (existKeys.has(key)) { dupCount++; continue; }
+          existKeys.add(key);
+          newFilters.push(item);
         }
-        
-        if (confirm(`发现 ${newFilters.length} 条记录，是否导入？\n（会与现有数据合并）`)) {
+        if (newFilters.length === 0 && dupCount > 0) {
+          showToast(`全部 ${dupCount} 条为重复数据，跳过导入`);
+          return;
+        }
+        let msg = `发现 ${newFilters.length} 条新记录` + (dupCount ? `（${dupCount} 条重复已跳过）` : '') + '，是否导入？';
+        if (confirm(msg)) {
           filters = [...newFilters, ...filters];
           saveData();
           renderList();
-          showToast('导入成功');
+          showToast('导入成功 ✓');
         }
       } catch (err) {
         showToast('导入失败：' + err.message);
@@ -818,52 +1068,92 @@ function importData() {
   input.click();
 }
 
-// 扫码功能
-function startScan() {
-  document.getElementById('scanModal').classList.add('show');
-  
-  html5QrCode = new Html5Qrcode("reader");
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ---------- 扫码 ----------
+function startScan(target) {
+  if (typeof Html5Qrcode === 'undefined') {
+    showToast('扫码组件加载中，请稍后再试');
+    return;
+  }
+  scanTarget = target;
+  showSheet('scanModal');
+  html5QrCode = new Html5Qrcode('reader');
+  const config = { fps: 10, qrbox: { width: 230, height: 230 } };
   html5QrCode.start(
-    { facingMode: "environment" },
+    { facingMode: 'environment' },
     config,
     (decodedText) => {
-      document.getElementById('f_oe_code').value = decodedText;
-      stopScan();
-      showToast('扫码成功');
+      stopScanOnly();
+      closeSheet('scanModal');
+      if (scanTarget === 'edit') {
+        document.getElementById('f_oe_code').value = decodedText;
+        // 如果编辑弹层没打开（误触发），自动补开
+        if (!document.getElementById('modal').classList.contains('show')) {
+          if (editingId === null && !document.getElementById('f_goods_code').value) openModal();
+          else showSheet('modal');
+        }
+        showToast('扫码成功 ✓');
+      } else {
+        document.getElementById('searchInput').value = decodedText;
+        renderList();
+        showToast('已按扫码结果搜索');
+      }
     },
-    (errorMessage) => {}
+    () => {} // 忽略逐帧解析错误
   ).catch(err => {
-    showToast('无法启动摄像头：' + err);
-    stopScan();
+    showToast('无法启动摄像头：' + (err.message || err));
+    closeSheet('scanModal');
+    html5QrCode = null;
   });
 }
-
-function stopScan() {
+function stopScanOnly() {
   if (html5QrCode) {
-    html5QrCode.stop().then(() => {
-      html5QrCode.clear();
-      html5QrCode = null;
-    });
+    const inst = html5QrCode;
+    html5QrCode = null;
+    inst.stop().then(() => inst.clear()).catch(() => {});
   }
-  document.getElementById('scanModal').classList.remove('show');
+}
+function stopScan() {
+  stopScanOnly();
+  closeSheet('scanModal');
 }
 
-function scanOE() {
-  startScan();
-}
-
-// Toast 提示
+// ---------- Toast ----------
+let toastTimer = null;
 function showToast(msg) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
-// 初始化
+// ---------- 初始化 ----------
 loadData();
+
+// 安卓返回键 / 手势返回时关闭弹层（history 技巧）
+if (window.history && history.pushState) {
+  pushStateGuard();
+  window.addEventListener('popstate', () => {
+    if (document.querySelector('.sheet.show')) {
+      closeAllSheets();
+      pushStateGuard();
+    }
+  });
+}
+function pushStateGuard() {
+  history.pushState({ sheet: true }, '', location.href);
+}
 </script>
 
 </body>
